@@ -1,11 +1,8 @@
-# main.py
+# api/index.py
 import json
 import requests
-from flask import Flask, jsonify
-from flask_cors import CORS
-
-app = Flask(__name__)
-CORS(app)  # 允许跨域请求
+from http.server import BaseHTTPRequestHandler
+from urllib.parse import urlparse, parse_qs
 
 def get_data():
     """微博热搜
@@ -59,44 +56,31 @@ def get_data():
     
     return data
 
-@app.route('/')
-def index():
-    """首页显示API信息"""
-    return '''
-    <!DOCTYPE html>
-    <html lang="zh-CN">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>微博热搜 API</title>
-        <style>
-            body { font-family: Arial, sans-serif; max-width: 800px; margin: 50px auto; padding: 20px; background: #f5f5f5; }
-            .container { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-            h1 { color: #333; text-align: center; }
-            .endpoint { background: #e9ecef; padding: 10px; border-radius: 3px; font-family: monospace; margin: 10px 0; }
-            .test-btn { background: #007bff; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; }
-            .test-btn:hover { background: #0056b3; }
-        </style>
-    </head>
-    <body>
-        <div class="container">
-            <h1>🔥 微博热搜 API</h1>
-            <h3>API 接口</h3>
-            <div class="endpoint">GET /api</div>
-            <p>返回 JSON 格式的微博热搜数据</p>
-            <button class="test-btn" onclick="window.open('/api', '_blank')">测试 API</button>
-        </div>
-    </body>
-    </html>
-    '''
-
-@app.route('/api')
-def api():
-    """API接口"""
-    data = get_data()
-    return jsonify(data)
-
-if __name__ == '__main__':
-    import os
-    port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port)
+class handler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        try:
+            data = get_data()
+            self.send_response(200)
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+            self.send_header('Access-Control-Allow-Headers', 'Content-Type')
+            self.send_header('Cache-Control', 'no-cache')
+            self.send_header('Content-type', 'application/json; charset=utf-8')
+            self.end_headers()
+            self.wfile.write(json.dumps(data, ensure_ascii=False).encode('utf-8'))
+        except Exception as e:
+            self.send_response(500)
+            self.send_header('Content-type', 'application/json')
+            self.end_headers()
+            error_response = {'error': str(e)}
+            self.wfile.write(json.dumps(error_response).encode('utf-8'))
+        return
+    
+    def do_OPTIONS(self):
+        # 处理预检请求
+        self.send_response(200)
+        self.send_header('Access-Control-Allow-Origin', '*')
+        self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+        self.send_header('Access-Control-Allow-Headers', 'Content-Type')
+        self.end_headers()
+        return

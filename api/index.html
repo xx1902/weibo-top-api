@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>微博热搜 API</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+        .api-info {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 10px;
+            margin: 25px 0;
+            border-left: 4px solid #007bff;
+        }
+        .endpoint {
+            background: #e9ecef;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            margin: 15px 0;
+            font-size: 14px;
+            word-break: break-all;
+        }
+        .test-btn {
+            background: linear-gradient(45deg, #007bff, #0056b3);
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,123,255,0.3);
+        }
+        .test-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,123,255,0.4);
+        }
+        #result {
+            margin-top: 25px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            white-space: pre-wrap;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 12px;
+            max-height: 500px;
+            overflow-y: auto;
+            border: 1px solid #dee2e6;
+        }
+        .loading {
+            color: #007bff;
+            font-style: italic;
+        }
+        .copy-btn {
+            background: #28a745;
+            color: white;
+            padding: 8px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+            margin-left: 10px;
+        }
+        .copy-btn:hover {
+            background: #218838;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔥 微博热搜 API</h1>
+        
+        <div class="api-info">
+            <h3>📡 API 接口信息</h3>
+            <p><strong>接口地址：</strong></p>
+            <div class="endpoint">
+                GET <span id="api-url">/api</span>
+                <button class="copy-btn" onclick="copyToClipboard('api-url')">复制</button>
+            </div>
+            
+            <p><strong>完整地址：</strong></p>
+            <div class="endpoint">
+                <span id="full-url"></span>
+                <button class="copy-btn" onclick="copyToClipboard('full-url')">复制</button>
+            </div>
+            
+            <p><strong>返回格式：</strong></p>
+            <div class="endpoint">
+[
+  {
+    "title": "热搜标题",
+    "url": "微博搜索链接", 
+    "num": 热度数值,
+    "hot": "热搜标识(热/爆/沸/新/影/剧/综/音)"
+  }
+]
+            </div>
+        </div>
+
+        <div style="text-align: center;">
+            <button class="test-btn" onclick="testAPI()">🧪 测试 API</button>
+        </div>
+        
+        <div id="result" style="display: none;"></div>
+    </div>
+
+    <script>
+        // 设置完整URL
+        document.getElementById('full-url').textContent = window.location.origin + '/api';
+        
+        async function testAPI() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = '<span class="loading">🔄 正在获取数据，请稍候...</span>';
+            
+            try {
+                const response = await fetch('/api');
+                const data = await response.json();
+                
+                if (data.length > 0 && !data[0].error) {
+                    resultDiv.innerHTML = '<strong>✅ API 测试成功！</strong>\n\n' + JSON.stringify(data, null, 2);
+                } else {
+                    resultDiv.innerHTML = '<strong>❌ API 返回错误：</strong>\n\n' + JSON.stringify(data, null, 2);
+                }
+            } catch (error) {
+                resultDiv.innerHTML = '<strong>❌ 请求失败：</strong>\n\n' + error.message;
+            }
+        }
+        
+        function copyToClipboard(elementId) {
+            const text = document.getElementById(elementId).textContent;
+            if (elementId === 'full-url') {
+                navigator.clipboard.writeText(text).then(() => {
+                    alert('✅ API地址已复制到剪贴板！');
+                });
+            } else {
+                navigator.clipboard.writeText(text).then(() => {
+                    alert('✅ 已复制到剪贴板！');
+                });
+            }
+        }
+    </script>
+</body>
+</html>
